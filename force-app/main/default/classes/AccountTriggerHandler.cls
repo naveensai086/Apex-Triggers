@@ -1,4 +1,29 @@
 public with sharing class AccountTriggerHandler {
+
+    public static void createContactOnChecked(List<Account> newAccList ,Map<Id,Account> oldAccMap){
+        List<Account> accList = new List<Account>();
+        if(!newAccList.isEmpty()){
+            for(Account acc : newAccList){
+                Boolean oldCreateContactFlag = oldAccMap!=null && oldAccMap.containsKey(acc.Id) ?oldAccMap.get(acc.Id).Create_Contact__c : false;
+                if(acc.Create_Contact__c == true && ( acc.Create_Contact__c!=oldCreateContactFlag )){
+                    accList.add(acc);
+                }
+            }
+        }
+        List<Contact>conListToUpdate=new List<Contact>();
+        if(!accList.isEmpty()){
+            for(Account acc : accList){
+                Contact con = new Contact();
+                con.AccountId=acc.id;
+                con.LastName=acc.Name;
+                con.Phone=acc.Phone;
+                conListToUpdate.add(con);
+            }
+        }
+
+        if(!conListToUpdate.isEmpty())
+         insert conListToUpdate;
+    }
    
     public static void preventDuplicateRecord(List<Account> accList){
 
