@@ -5,26 +5,34 @@ public with sharing class AccountTriggerHandler {
             if (accList.isEmpty()) {
                 return;
             }
-        
             // Collect unique account names (normalized to lowercase)
+            
             Set<String> newAccNames = new Set<String>();
+            Map<String, Id> nameToIdMap = new Map<String, Id>();
             for (Account acc : accList) {
                 if (acc.Name != null) {
                     newAccNames.add(acc.Name.toLowerCase());
                 }
+                if(acc.Id!=null){
+                    nameToIdMap.put(acc.Name,acc.Id);
+                }
             }
-        
             // Query existing accounts with names in the set
+        
             List<Account> existingAccounts = [SELECT Id, Name FROM Account WHERE Name IN :newAccNames];
             Set<String> existingAccNames = new Set<String>();
+            Map<String, Id> existingNameToIdMap = new Map<String, Id>();
+
             for (Account acc : existingAccounts) {
                 existingAccNames.add(acc.Name.toLowerCase());
+                existingNameToIdMap.put(acc.Name.toLowerCase(),acc.Id);
             }
         
             // Flag duplicate records
             for (Account acc : accList) {
                 if (acc.Name != null && existingAccNames.contains(acc.Name.toLowerCase())) {
-                    acc.addError('Duplicate Record Name');
+                    if(!existingNameToIdMap.get(acc.Name.toLowerCase()).equals(acc.Id))
+                    acc.addError('Duplicate Record Name '+acc.Name);
                 }
             }
     }
