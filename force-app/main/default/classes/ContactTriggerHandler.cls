@@ -4,8 +4,10 @@ public with sharing class ContactTriggerHandler {
         Set<Id> accIds = new Set<Id>();
         if(!conList.isEmpty()){
             for(Contact con : conList){
-                if(con.AccountId != conOldMap.get(con.id).AccountId && con.AccountId!=null){
+                if(con.AccountId != conOldMap.get(con.id).AccountId){
+                    if(con.AccountId!=null)
                     accIds.add(con.AccountId);
+                    if(conOldMap.get(con.id).AccountId!=null)
                     accIds.add(conOldMap.get(con.id).AccountId);
                 }
             }
