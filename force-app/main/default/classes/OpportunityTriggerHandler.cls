@@ -28,8 +28,8 @@ public with sharing class OpportunityTriggerHandler {
     }
 
     public static void  calcTotalAmountOfAccountsOpporAfterdelete(List<Opportunity> oppOldList) {
-    Set<Id> accIds = new Set<Id>(); 
-    if(!oppOldList.isEmpty()){
+       Set<Id> accIds = new Set<Id>(); 
+        if(!oppOldList.isEmpty()){
        for(Opportunity opp : oppOldList){
         if(opp.AccountId!=null)
           accIds.add(opp.AccountId);
@@ -96,5 +96,53 @@ public with sharing class OpportunityTriggerHandler {
         update updateAccList;
 
 
+    }
+
+
+    public static void  calHighAmountOfOpporNameAfterInsertAndUndelete(List<Opportunity> oppNewList,Map<Id,Opportunity> oppOldMap) {
+
+            Set<Id> accIds = new Set<Id>();    
+            if(!oppNewList.isEmpty()){
+            for(Opportunity opp : oppNewList){
+                if(oppOldMap!=null){
+                        if(oppOldMap.get(opp.Id).AccountId!=opp.AccountId){
+                            if(oppOldMap.get(opp.Id).AccountId!=null)
+                               accIds.add(oppOldMap.get(opp.Id).AccountId);
+                            if(opp.AccountId!=null)
+                               accIds.add(opp.AccountId);
+                        }else if(oppOldMap.get(opp.Id).Amount!=opp.Amount){
+                            accIds.add(opp.AccountId);
+                        }
+                } 
+                else{
+                    if(opp.AccountId!=null)
+                    accIds.add(opp.AccountId);
+                }             
+            }
+            }  
+
+           List<Account> accList = new List<Account>();
+           if(!accIds.isEmpty()){
+            List<Account> accToUpdate = [select Id ,Max_Opportunity_Amount_Name__c , 
+                                         (select Name ,Amount from Opportunities where Amount!=null order by Amount Desc Limit 1) 
+                                         from Account where Id=:accIds];
+             if(!accToUpdate.isEmpty()){
+                for(Account ar : accToUpdate){
+                    if(!ar.Opportunities.isEmpty()){                                
+                        ar.Max_Opportunity_Amount_Name__c=ar.Opportunities[0].Name;
+                        accList.add(ar);
+                    }
+                    else{
+                        ar.Max_Opportunity_Amount_Name__c='';
+                        accList.add(ar);
+                    }
+                   
+                }   
+            }
+       } 
+        
+
+         if(!accList.isEmpty())
+         update accList;
     }
 }
